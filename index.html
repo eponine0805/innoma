@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji Slasher MVP</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Mobile Specific Overrides inline or in css */
+        @media (hover: none) and (pointer: coarse) {
+            #mobile-controls {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+        <div id="ui-layer">
+            <!-- UI populated by JS -->
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" style="display:none;">
+            <div id="joystick-zone">
+                <div id="joystick-knob"></div>
+            </div>
+            <div id="action-zone">
+                <button id="btn-attack" class="touch-btn">⚔️</button>
+                <button id="btn-ability" class="touch-btn">⚡</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+
+</html>
