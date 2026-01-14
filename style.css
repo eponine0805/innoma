@@ -16,14 +16,17 @@ body {
 
 #game-container {
     position: relative;
-    width: 1280px;
-    height: 720px;
-    background: #000;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    /* Responsive scaling */
-    max-width: 100%;
+
+    /* Logic to fit within screen while maintaining 16:9 */
+    width: 100%;
+    max-width: 100vw;
+    height: auto;
     max-height: 100vh;
     aspect-ratio: 16/9;
+
+    background: #000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    margin: auto;
 }
 
 canvas {

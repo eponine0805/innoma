@@ -35,10 +35,10 @@ const CONFIG = {
         '炎': { type: 'aoe', name: 'Flame', color: '#d35400', cd: 90, damage: 120, range: 200 },
         '水': { type: 'projectile', name: 'Water', color: '#3498db', cd: 15, damage: 45, speed: 12, size: 10 },
         '氷': { type: 'projectile', name: 'Ice', color: '#aec6cf', cd: 60, damage: 30, speed: 15, size: 10, slow: 0.5, slowTime: 120 },
-        '土': { type: 'projectile', name: 'Earth', color: '#8e44ad', cd: 180, damage: 100, speed: 8, size: 15, pierce: true },
+        '土': { type: 'projectile', name: 'Earth', color: '#795548', cd: 600, damage: 100, speed: 8, size: 15, pierce: true },
         '金': { type: 'buff', name: 'Gold', color: '#f1c40f', cd: 600, duration: 300, mult: 4.0 },
         '鉄': { type: 'passive', name: 'Iron', color: '#95a5a6', mult: 2.0 },
-        '毒': { type: 'aoe', name: 'Poison', color: '#9b59b6', cd: 90, damage: 0, range: 250, poison: true }
+        '毒': { type: 'aoe', name: 'Poison', color: '#9b59b6', cd: 90, damage: 0, range: 250, poison: true, duration: 300 }
     },
 
     Upgrade: {
@@ -292,22 +292,38 @@ function saveGame() {
 
 // --- CLASSES ---
 class Entity {
-    constructor(x, y, r, color) {
+    constructor(x, y, r, color, type, text) {
         this.x = x; this.y = y; this.r = r; this.color = color;
+        this.type = type || 'normal';
+        this.text = text; // Optional text content
         this.dead = false;
         this.vx = 0; this.vy = 0;
     }
     update() {
         this.x += this.vx; this.y += this.vy;
+        if (this.text) this.vy -= 0.5; // Text floats up
     }
     draw(ctx) {
         ctx.save();
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.text) {
+            // Text Particle
+            ctx.fillStyle = this.color;
+            ctx.font = "bold 20px Arial"; // Readable font
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'black';
+            ctx.strokeText(this.text, this.x, this.y);
+            ctx.fillText(this.text, this.x, this.y);
+        } else {
+            // Normal Particle
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
         ctx.restore();
     }
 }
@@ -705,10 +721,16 @@ class Enemy extends Entity {
         // Poison Logic
         if (this.poisonTime > 0) {
             this.poisonTime--;
-            if (this.poisonTime % 20 === 0) { // 3 times a second
-                // % Damage (3% as requested)
-                const dmg = Math.max(1, Math.floor(this.maxHp * 0.03) + (STATE.Levels.Ability));
+            if (this.poisonTime % 30 === 0) { // Every 0.5 seconds (30 frames)
+                // % Damage (10% as requested)
+                const dmg = Math.max(1, Math.floor(this.maxHp * 0.10) + (STATE.Levels.Ability || 0));
                 this.takeDamage(dmg);
+
+                // Extra purple visuals to prove it works
+                const p = new Particle(this.x, this.y - 30, 0, '#9b59b6', 'text', Math.floor(dmg));
+                p.vy = -1.5; p.life = 40;
+                STATE.Entities.push(p);
+
                 STATE.Entities.push(new Particle(this.x, this.y, 3, '#9b59b6')); // Purple particles
             }
         }
@@ -739,6 +761,13 @@ class Enemy extends Entity {
 
     takeDamage(amt) {
         this.hp -= amt;
+
+        // Damage Number
+        const p = new Particle(this.x, this.y - 20, 0, '#e74c3c', 'text', Math.floor(amt));
+        p.vy = -1; // Float up
+        p.life = 40;
+        STATE.Entities.push(p);
+
         if (this.hp <= 0 && !this.dead) {
             this.dead = true;
             STATE.Money += this.isBoss ? 100 : 10;
@@ -851,14 +880,29 @@ class Projectile extends Entity {
                             p.life = 40;
                             STATE.Entities.push(p);
                         }
-                    } else {
-                        spawnParticle(this.x, this.y, 10, this.color, this.fxType || 'normal');
                     }
-
-                    // screenShake(2, 5); // Removed shake on projectile hit for smoother feel
-
-                    break;
+                } else if (this.fxType === 'rock') {
+                    // Earth Debris (Heavy)
+                    for (let i = 0; i < 6; i++) {
+                        const p = new Particle(this.x, this.y, Math.random() * 5 + 4, '#795548', 'normal');
+                        const a = Math.random() * Math.PI * 2;
+                        p.vx = Math.cos(a) * 3;
+                        p.vy = Math.sin(a) * 3 - 2; // Upward burst then gravity
+                        p.life = 60;
+                        // Add gravity to these particles if possible?
+                        // Particle class doesn't have gravity by default, simulate by vy+=0.2 in update?
+                        // Let's just make them slower
+                        STATE.Entities.push(p);
+                    }
+                    spawnParticle(this.x, this.y, 20, '#5d4037'); // Darker dust
+                    screenShake(5, 10); // Heavy impact for Earth
+                } else {
+                    spawnParticle(this.x, this.y, 10, this.color, this.fxType || 'normal');
                 }
+
+                // screenShake(2, 5); // Removed shake on projectile hit for smoother feel
+
+                break;
             }
         }
     }
