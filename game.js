@@ -1198,7 +1198,6 @@ function showScreen(name) {
     if (name === 'kanji_select') {
         const wrap = document.createElement('div');
         wrap.className = 'ui-screen';
-        wrap.innerHTML = `<h1>印を選択せよ</h1><p>一度選ぶと変更できません</p><div class="kanji-grid" id="kgrid"></div>`;
         UI.layer.appendChild(wrap);
 
         const grid = document.getElementById('kgrid');
@@ -1242,7 +1241,7 @@ function showScreen(name) {
         const wrap = document.createElement('div');
         wrap.className = 'ui-screen';
         const win = STATE.GameResult === 'win';
-        wrap.innerHTML = `<h1>${win ? '強敵撃破' : '勝負あり (GAME OVER)'}</h1>`;
+        wrap.innerHTML = `<h1>${win ? '強敵撃破' : '勝負あり'}</h1>`;
 
         if (win) {
             // Shop
