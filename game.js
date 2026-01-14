@@ -1198,10 +1198,7 @@ function showScreen(name) {
     if (name === 'kanji_select') {
         const wrap = document.createElement('div');
         wrap.className = 'ui-screen';
-<<<<<<< HEAD
-=======
-        wrap.innerHTML = `<h1>印を選択せよ</h1><p></p><div class="kanji-grid" id="kgrid"></div>`;
->>>>>>> f4cf72b (Update game files)
+        wrap.innerHTML = `<h1>印を選択せよ</h1><div class="kanji-grid" id="kgrid"></div>`;
         UI.layer.appendChild(wrap);
 
         const grid = document.getElementById('kgrid');
