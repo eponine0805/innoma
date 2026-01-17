@@ -2779,11 +2779,10 @@ function bindUIEvents() {
             updateBounds(pos.x, pos.y);
 
             const velocity = dt > 0 ? dist / dt : 0;
-            // Very exaggerated brush: thick lines even at moderate speed
-            // velocity 0 = 35px, velocity 3+ = 3px
-            let width = 35 - (velocity * 8);
+            // Brush: 25px max, high velocity sensitivity
+            let width = 25 - (velocity * 20);
             if (width < 3) width = 3;
-            if (width > 35) width = 35;
+            if (width > 25) width = 25;
 
             ctx.lineWidth = width;
             ctx.beginPath();
