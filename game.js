@@ -415,6 +415,34 @@ UI.canvas.addEventListener('mouseup', e => {
 });
 UI.canvas.addEventListener('contextmenu', e => e.preventDefault());
 
+// --- TOUCH CONTROLS (Game Canvas) ---
+UI.canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = UI.canvas.getBoundingClientRect();
+    const scaleX = UI.canvas.width / rect.width;
+    const scaleY = UI.canvas.height / rect.height;
+    STATE.Input.aimX = (touch.clientX - rect.left) * scaleX;
+    STATE.Input.aimY = (touch.clientY - rect.top) * scaleY;
+    STATE.Input.lClick = true; // Tap = Attack
+}, { passive: false });
+
+UI.canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = UI.canvas.getBoundingClientRect();
+    const scaleX = UI.canvas.width / rect.width;
+    const scaleY = UI.canvas.height / rect.height;
+    STATE.Input.aimX = (touch.clientX - rect.left) * scaleX;
+    STATE.Input.aimY = (touch.clientY - rect.top) * scaleY;
+}, { passive: false });
+
+UI.canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    STATE.Input.lClick = false;
+    STATE.Input.lClickDown = false;
+}, { passive: false });
+
 // --- MOBILE TOUCH CONTROLS ---
 const Joy = {
     active: false,
