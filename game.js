@@ -5330,7 +5330,7 @@ function showBossWarning() {
         document.head.appendChild(style);
     }
 
-    // Screen flash effect
+    // Screen flash effect (Smoother fade out)
     const flash = document.createElement('div');
     flash.style.cssText = `
         position: fixed;
@@ -5338,7 +5338,7 @@ function showBossWarning() {
         background: rgba(255, 0, 0, 0.3);
         pointer-events: none;
         z-index: 999;
-        animation: flashAnim 0.5s ease-out;
+        animation: flashAnim 0.8s ease-in-out;
     `;
     document.body.appendChild(flash);
 
@@ -5354,11 +5354,11 @@ function showBossWarning() {
         document.head.appendChild(style);
     }
 
-    // Remove after animation
+    // Remove after animation (Shortened to 2 seconds)
     setTimeout(() => {
         warning.remove();
         flash.remove();
-    }, 3500);
+    }, 2000);
 
     // Screen shake
     screenShake(5, 30);
