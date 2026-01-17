@@ -2779,9 +2779,9 @@ function bindUIEvents() {
             updateBounds(pos.x, pos.y);
 
             const velocity = dt > 0 ? dist / dt : 0;
-            // Brush: 25px max, high velocity sensitivity
+            // Brush: 25px max, 6px min, high velocity sensitivity
             let width = 25 - (velocity * 20);
-            if (width < 3) width = 3;
+            if (width < 6) width = 6;
             if (width > 25) width = 25;
 
             ctx.lineWidth = width;
