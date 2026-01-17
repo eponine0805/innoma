@@ -42,7 +42,7 @@ const CONFIG = {
         // --------------------------
         '火': {
             type: 'projectile', name: 'Fire', color: '#e74c3c',
-            cd: 60, damage: 100, speed: 10, size: 10,
+            cd: 100, damage: 80, speed: 10, size: 10,
             burn: { rate: 0.20, duration: 180, boss_mult: 0.5 },
             scaling: { dmg: 0.08 },
             fx: { trail: 'fire_trail', hit: 'fire_burst', glow: true }
@@ -55,7 +55,7 @@ const CONFIG = {
         },
         '水': {
             type: 'projectile', name: 'Water', color: '#3498db',
-            cd: 24, damage: 45, speed: 12, size: 10,
+            cd: 40, damage: 40, speed: 12, size: 10,
             knockback: 5, scaling: { dmg: 0.06 },
             fx: { trail: 'water_droplet', hit: 'splash', ripple: true }
         },
@@ -108,11 +108,14 @@ const CONFIG = {
             fx: { trail: 'lightning_spark', chain: 'arc_lightning', crackle: true }
         },
         '光': {
+            // DEBUG: Clone of Fire to test auto-target
             type: 'projectile', name: 'Light', color: '#fffacd',
-            cd: 210, damage: 120, speed: 20, size: 5,
-            pierce: -1, laser: true, maxHitsPerShot: 10,
-            scaling: { dmg: 0.08 },
-            fx: { beam: 'light_ray', lens_flare: true, particles: 'light_motes' }
+            cd: 180, damage: 120, speed: 12, size: 8,
+            // Original Light Props: speed 20, pierce -1, laser true
+            // Using Fire props:
+            burn: { duration: 180, damage: 5 },
+            scaling: { dmg: 0.05 },
+            fx: { trail: 'ember', particles: 'fire_spark', explosion: 'fire_burst' }
         },
 
         // --------------------------
@@ -697,7 +700,27 @@ class Player extends Entity {
         if (this.allStatsTime > 0) cd /= CONFIG.Kanji['全'].atk_speed_mult; // All Buff (Atk Speed x1.3)
         this.slashCD = Math.floor(cd);
         this.isSlashing = CONFIG.SlashDuration;
-        this.slashAngle = angle;
+
+        // Auto-targeting: find nearest enemy
+        let targetAngle = angle;
+        let nearest = null;
+        let minDist = Infinity;
+        STATE.Entities.forEach(e => {
+            if (e instanceof Enemy && !e.dead) {
+                const d = Math.sqrt((e.x - this.x) ** 2 + (e.y - this.y) ** 2);
+                if (d < minDist) {
+                    minDist = d;
+                    nearest = e;
+                }
+            }
+        });
+
+        if (nearest) {
+            targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+        }
+        // If no enemy, use original angle (player facing direction)
+
+        this.slashAngle = targetAngle;
 
         // Stats
         let dmg = CONFIG.BaseAtk + (STATE.Levels.ATK - 1) * 2;
@@ -758,10 +781,10 @@ class Player extends Entity {
                     }
                     // End Fight Logic
 
-                    // Check angle
+                    // Check angle (use targetAngle for auto-targeting)
                     let angTo = Math.atan2(dy, dx);
                     // ... (rest of logic)
-                    let diff = angTo - angle;
+                    let diff = angTo - targetAngle;
                     while (diff > Math.PI) diff -= 2 * Math.PI;
                     while (diff < -Math.PI) diff += 2 * Math.PI;
                     const isClose = dist < this.r + e.r + 10;
@@ -1036,9 +1059,28 @@ class Player extends Entity {
                 spawnParticleRing(this.x, this.y, k.range, k.color);
                 screenShake(5, 10);
             } else if (k.type === 'aoe_delayed') {
-                // Mountain (delayed落下)
-                const targetX = this.x + Math.cos(angle) * 200;
-                const targetY = this.y + Math.sin(angle) * 200;
+                // Mountain (delayed落下) - Auto-target nearest enemy
+                let targetX = this.x + Math.cos(angle) * 200;
+                let targetY = this.y + Math.sin(angle) * 200;
+
+                // Find nearest enemy for auto-targeting
+                let nearest = null;
+                let minDist = Infinity;
+                STATE.Entities.forEach(e => {
+                    if (e instanceof Enemy && !e.dead) {
+                        const d = Math.sqrt((e.x - this.x) ** 2 + (e.y - this.y) ** 2);
+                        if (d < minDist) {
+                            minDist = d;
+                            nearest = e;
+                        }
+                    }
+                });
+
+                if (nearest) {
+                    targetX = nearest.x;
+                    targetY = nearest.y;
+                }
+
                 setTimeout(() => {
                     createExplosion(targetX, targetY, k.range, k.color, 15, dmg, false);
                     spawnParticle(targetX, targetY, 30, k.color);
@@ -1138,7 +1180,30 @@ class Player extends Entity {
         // === PROJECTILE TYPES ===
         if (k.type === 'projectile') {
             const dmg = k.damage + (STATE.Levels.Ability - 1) * 2;
-            const p = new Projectile(this.x, this.y, angle, k.speed, k.size * 1.5, k.color, dmg);
+
+            // Auto-targeting for all projectile abilities
+            let targetAngle = angle;
+
+            // Find nearest enemy
+            let nearest = null;
+            let minDist = Infinity;
+
+            for (const e of STATE.Entities) {
+                if (e instanceof Enemy && !e.dead) {
+                    const d = Math.sqrt((e.x - this.x) ** 2 + (e.y - this.y) ** 2);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearest = e;
+                    }
+                }
+            }
+
+            if (nearest) {
+                // Aim at nearest enemy
+                targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+            }
+
+            const p = new Projectile(this.x, this.y, targetAngle, k.speed, k.size * 1.5, k.color, dmg);
 
             // Properties
             if (k.slow) p.slow = k.slow;
@@ -2388,12 +2453,16 @@ function drawHUD() {
     // HP Bar is at Y=20..50. Let's put text BELOW it.
     const top = document.getElementById('hud-text');
     if (top) {
-        // Force position to be below HP bar
-        top.style.top = '60px';
+        // Force position to be below HP bar (Touching bottom of bar at 50px)
+        top.style.top = '50px';
         top.style.left = '20px';
 
         let txt = `Stage: ${STATE.Stage + 1}   <span style="color:#f1c40f">Money: ${STATE.Money}</span>`;
+        // txt += `   <span style="color:#ccc">Seal: ${STATE.Kanji}</span>`;
+        top.innerHTML = txt;
+
         const k = CONFIG.Kanji[STATE.Kanji];
+
 
         // CD Indicator
         if (k.type !== 'passive') {
@@ -2451,6 +2520,7 @@ function drawHUD() {
         }
 
         top.innerHTML = txt;
+
     }
 }
 
@@ -3129,14 +3199,56 @@ function nextStage() {
 }
 
 // --- RESIZE LOGIC ---
+// Maintain 16:9 aspect ratio, fit within screen (contain mode)
+const GAME_ASPECT_RATIO = 16 / 9;
+const BASE_WIDTH = 1280;
+const BASE_HEIGHT = 720;
+
 function resize() {
     if (UI && UI.canvas) {
-        UI.canvas.width = window.innerWidth;
-        UI.canvas.height = window.innerHeight;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const windowAspect = windowWidth / windowHeight;
 
-        // Update Game Logic Bounds
-        CONFIG.ScreenWidth = window.innerWidth;
-        CONFIG.ScreenHeight = window.innerHeight;
+        let canvasWidth, canvasHeight;
+
+        if (windowAspect > GAME_ASPECT_RATIO) {
+            // Window is wider than game - fit to height
+            canvasHeight = windowHeight;
+            canvasWidth = windowHeight * GAME_ASPECT_RATIO;
+        } else {
+            // Window is taller than game - fit to width
+            canvasWidth = windowWidth;
+            canvasHeight = windowWidth / GAME_ASPECT_RATIO;
+        }
+
+        const canvasLeft = (windowWidth - canvasWidth) / 2;
+        const canvasTop = (windowHeight - canvasHeight) / 2;
+
+        // Set canvas display size (CSS)
+        UI.canvas.style.width = canvasWidth + 'px';
+        UI.canvas.style.height = canvasHeight + 'px';
+        UI.canvas.style.position = 'absolute';
+        UI.canvas.style.left = canvasLeft + 'px';
+        UI.canvas.style.top = canvasTop + 'px';
+
+        // Sync HUD position with canvas
+        const hud = document.getElementById('hud');
+        if (hud) {
+            hud.style.position = 'absolute';
+            hud.style.left = canvasLeft + 'px';
+            hud.style.top = canvasTop + 'px';
+            hud.style.width = canvasWidth + 'px';
+            hud.style.height = canvasHeight + 'px';
+        }
+
+        // Set canvas internal resolution (fixed for consistent game logic)
+        UI.canvas.width = BASE_WIDTH;
+        UI.canvas.height = BASE_HEIGHT;
+
+        // Keep game logic using fixed dimensions
+        CONFIG.ScreenWidth = BASE_WIDTH;
+        CONFIG.ScreenHeight = BASE_HEIGHT;
     }
 }
 window.addEventListener('resize', resize);
@@ -4117,9 +4229,49 @@ Player.prototype.performAbility = function (angle, k) {
         return;
     }
 
-    // LIGHT: Instant laser beam to screen edge
+    // LIGHT: Instant laser beam to screen edge (Restored from Backup with Auto-Aim Fix)
     if (k.name === 'Light') {
         this.abilityCD = k.cd;
+
+        // --- AUTO-TARGETING FIX ---
+        // Originally, Light just used 'angle' (tap direction).
+        // We inject the auto-targeting logic here to update 'angle' before firing.
+        let nearest = null;
+        let minC = Infinity; // Closest to cursor
+
+        // Find enemy closest to AIM POINT first (Priority 1)
+        STATE.Entities.forEach(e => {
+            if (e instanceof Enemy && !e.dead) {
+                const dist = Math.sqrt((e.x - STATE.Input.aimX) ** 2 + (e.y - STATE.Input.aimY) ** 2);
+                if (dist < 250 && dist < minC) { // Search radius around cursor
+                    minC = dist;
+                    nearest = e;
+                }
+            }
+        });
+
+        // If no enemy near cursor, find NEAREST to player (Priority 2)
+        if (!nearest) {
+            let minD = Infinity;
+            STATE.Entities.forEach(e => {
+                if (e instanceof Enemy && !e.dead) {
+                    const dist = Math.sqrt((e.x - this.x) ** 2 + (e.y - this.y) ** 2);
+                    if (dist < CONFIG.ScreenWidth) { // Screen range
+                        if (dist < minD) {
+                            minD = dist;
+                            nearest = e;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update angle if target found
+        if (nearest) {
+            angle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+        }
+        // --- END AUTO-TARGETING FIX ---
+
         const px = this.x, py = this.y;
         const damage = k.damage;
 
