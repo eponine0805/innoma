@@ -2779,9 +2779,10 @@ function bindUIEvents() {
             updateBounds(pos.x, pos.y);
 
             const velocity = dt > 0 ? dist / dt : 0;
-            let width = 18 - (velocity * 6);
-            if (width < 6) width = 6;
-            if (width > 18) width = 18;
+            // Exaggerated brush feel: slow = very thick (30px), fast = very thin (3px)
+            let width = 30 - (velocity * 15);
+            if (width < 3) width = 3;
+            if (width > 30) width = 30;
 
             ctx.lineWidth = width;
             ctx.beginPath();

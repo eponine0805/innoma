@@ -328,18 +328,19 @@ class HandwritingRecognizer {
             const densDist = Math.abs(features.density - tmpl.density);
 
             // WEIGHTED SCORE (Lower is better)
-            let score = (0.50 * pixelDist) + (0.30 * edgeDist) + (0.40 * dirDist * 100) + (0.10 * densDist * 1000);
+            // Increased edge and directional importance for better shape matching
+            let score = (0.35 * pixelDist) + (0.35 * edgeDist) + (0.50 * dirDist * 100) + (0.05 * densDist * 1000);
 
-            // 5. STROKE COUNT PENALTY (Critical Filter)
+            // 5. STROKE COUNT PENALTY (Reduced importance - user may write differently)
             if (inputStrokes > 0 && STROKE_COUNTS[tmpl.char]) {
                 const targetStrokes = STROKE_COUNTS[tmpl.char];
                 const diff = Math.abs(inputStrokes - targetStrokes);
 
-                // Non-linear penalty
-                if (diff > 2) {
-                    score += diff * 500; // Massive penalty
-                } else if (diff > 0) {
-                    score += diff * 50; // Strong penalty
+                // Softer penalty
+                if (diff > 4) {
+                    score += diff * 200; // Penalty for very different stroke count
+                } else if (diff > 2) {
+                    score += diff * 30; // Moderate penalty
                 }
             }
 
