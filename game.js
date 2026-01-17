@@ -2687,12 +2687,16 @@ function bindUIEvents() {
             charDisplay.style.whiteSpace = 'nowrap';
             document.body.appendChild(charDisplay);
 
-            // Trigger Animations
-            requestAnimationFrame(() => {
+            // Trigger Animations - Use setTimeout for mobile compatibility
+            // Mobile browsers sometimes skip transitions if triggered too quickly
+            setTimeout(() => {
                 overlay.style.opacity = '1.0'; // Fully cover ink
+            }, 50);
+
+            setTimeout(() => {
                 charDisplay.style.opacity = '1';
                 charDisplay.style.transform = 'translate(-50%, -50%) scale(1.0)';
-            });
+            }, 100);
 
             // 3. Confirm & Transition
             setTimeout(() => {
@@ -2779,9 +2783,9 @@ function bindUIEvents() {
             updateBounds(pos.x, pos.y);
 
             const velocity = dt > 0 ? dist / dt : 0;
-            // Brush: 25px max, 6px min, high velocity sensitivity
-            let width = 25 - (velocity * 20);
-            if (width < 6) width = 6;
+            // Brush: 25px max, 8px min, moderate velocity sensitivity
+            let width = 25 - (velocity * 8);
+            if (width < 8) width = 8;
             if (width > 25) width = 25;
 
             ctx.lineWidth = width;
