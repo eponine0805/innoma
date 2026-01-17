@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Yuji+Boku&family=Yuji+Syuku&display=swap');
+
+:root {
+    --bg-color: #050508;
+    --panel-bg: rgba(20, 20, 25, 0.95);
+    --text-main: #f0f0f0;
+    --accent-gold: #cfaa6e;
+    --accent-red: #b93b3b;
+    --border-color: #3a3a40;
+    --font-main: 'Yuji Syuku', serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    overflow: hidden;
+    /* Subtle texture overlay */
+    background-image: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Screens */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    z-index: 10;
+    /* Fade transition */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.screen.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Game Canvas */
+#game-screen {
+    display: none;
+}
+
+#game-screen.active {
+    display: block;
+    opacity: 1;
+}
+
+canvas#game-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* UI Overlay */
+#hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+#hud-text {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: normal;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    color: var(--accent-gold);
+    letter-spacing: 0.1em;
+}
+
+/* Handwriting UI Area */
+#kanji-select-screen {
+    justify-content: center;
+    /* Center initially */
+    padding-top: 0;
+    background: rgba(0, 0, 0, 0.6);
+    /* Dim background */
+}
+
+#handwriting-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+#writing-pad {
+    background: #f8f8f0;
+    /* Off-white paper look */
+    border: 8px solid var(--border-color);
+    border-radius: 4px;
+    cursor: crosshair;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    /* Wafu Border Effect via Box Shadow usually better than border-image unless using texture */
+}
+
+/* Controls below pad */
+.hw-controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+#result-display-area {
+    margin: 15px;
+    font-size: 32px;
+    color: var(--accent-gold);
+    text-shadow: 0 0 10px rgba(207, 170, 110, 0.3);
+}
+
+#result-char {
+    font-size: 48px;
+    margin: 0 10px;
+    color: var(--accent-red) !important;
+}
+
+/* Side Panel (Drawer) */
+.seal-side-panel {
+    position: absolute;
+    top: 0;
+    right: -320px;
+    /* Hidden by default */
+    width: 320px;
+    height: 100%;
+    background: var(--panel-bg);
+    border-left: 1px solid var(--accent-gold);
+    z-index: 100;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.seal-side-panel.open {
+    right: 0;
+}
+
+.seal-side-panel h3 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--accent-gold);
+    padding-bottom: 15px;
+    color: var(--accent-gold);
+    text-align: center;
+    letter-spacing: 0.2em;
+}
+
+/* Kanji Grid */
+#list-selection-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.kanji-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #888;
+    border: 1px solid #444;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Yuji Syuku', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kanji-btn:hover {
+    background: rgba(207, 170, 110, 0.1);
+    color: var(--accent-gold);
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 8px var(--accent-gold);
+}
+
+/* Wafu Buttons */
+button {
+    padding: 12px 30px;
+    font-size: 20px;
+    cursor: pointer;
+    background: linear-gradient(to bottom, #2a2a30, #1a1a20);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    margin: 5px;
+    font-family: var(--font-main);
+    transition: all 0.2s;
+    text-shadow: 1px 1px 2px black;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    box-shadow: 0 0 10px rgba(207, 170, 110, 0.2);
+}
+
+button:active {
+    transform: translateY(2px);
+}
+
+button.primary {
+    background: linear-gradient(to bottom, #8e2b2b, #601010);
+    /* Deep Red */
+    border-color: #a03030;
+}
+
+button.primary:hover {
+    background: linear-gradient(to bottom, #a03030, #801515);
+    border-color: #ff5555;
+    color: white;
+    box-shadow: 0 0 15px rgba(255, 85, 85, 0.4);
+}
+
+/* Toggle Button for Panel */
+#btn-open-list {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 80px;
+    border-radius: 10px 0 0 10px;
+    border-right: none;
+    padding: 0;
+    background: var(--panel-bg);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    z-index: 90;
+    font-size: 20px;
+}
+
+#btn-open-list:hover {
+    right: 5px;
+    /* Tease interaction */
+}
+
+/* Modal/Result Styles */
+#result-title {
+    color: var(--accent-gold);
+    font-size: 48px;
+    letter-spacing: 0.2em;
+    border-bottom: 2px solid var(--accent-red);
+    padding-bottom: 10px;
+    margin-bottom: 40px;
+}
+
+.shop-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    margin: 10px;
+    border: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 400px;
+}
+
+/* Boss Warning */
+.boss-warning {
+    color: var(--accent-red) !important;
+    text-shadow: 0 0 20px #000;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        transform: translate(-50%, -50%) scale(1.0);
+        opacity: 0.8;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 1.0;
+    }
+}

@@ -57,6 +57,19 @@ canvas {
     display: block;
 }
 
+/* Game Screen */
+#game-screen {
+    background: #000;
+}
+
+#game-screen canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* Grid layout for seal selection */
 #list-selection-container {
     display: grid;
