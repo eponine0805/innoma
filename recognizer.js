@@ -328,8 +328,8 @@ class HandwritingRecognizer {
             const densDist = Math.abs(features.density - tmpl.density);
 
             // WEIGHTED SCORE (Lower is better)
-            // Increased edge and directional importance for better shape matching
-            let score = (0.35 * pixelDist) + (0.35 * edgeDist) + (0.50 * dirDist * 100) + (0.05 * densDist * 1000);
+            // Edge and directional features heavily emphasized for shape matching
+            let score = (0.20 * pixelDist) + (0.45 * edgeDist) + (0.70 * dirDist * 100) + (0.03 * densDist * 1000);
 
             // 5. STROKE COUNT PENALTY (Reduced importance - user may write differently)
             if (inputStrokes > 0 && STROKE_COUNTS[tmpl.char]) {
