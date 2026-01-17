@@ -2753,23 +2753,23 @@ function bindUIEvents() {
             }
 
             isDrawing = true;
-            // Don't increment stroke here, increment on end?
-            // game_new.js incremented on end. game.js increased on start.
-            // visual logic used `move` with velocity width.
 
             const pos = getPos(e);
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
             lastPos = pos;
+            prevPos = pos; // For bezier control point
             lastTime = Date.now();
             updateBounds(pos.x, pos.y);
 
-            // Draw dot
+            // Draw emphasized start dot (始筆)
             ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+            ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2); // Larger start dot
             ctx.fill();
         };
+
+        let prevPos = { x: 0, y: 0 }; // For bezier curves
 
         const move = (e) => {
             if (!isDrawing) return;
@@ -2783,17 +2783,29 @@ function bindUIEvents() {
             updateBounds(pos.x, pos.y);
 
             const velocity = dt > 0 ? dist / dt : 0;
-            // Brush: 25px max, 8px min, moderate velocity sensitivity
+            // Brush: 25px max, 8px min
             let width = 25 - (velocity * 8);
             if (width < 8) width = 8;
             if (width > 25) width = 25;
 
+            // Opacity based on speed (slower = darker)
+            let opacity = 1.0 - (velocity * 0.3);
+            if (opacity < 0.5) opacity = 0.5;
+            if (opacity > 1.0) opacity = 1.0;
+
             ctx.lineWidth = width;
+            ctx.strokeStyle = `rgba(26, 26, 26, ${opacity})`;
+
+            // Use quadratic bezier for smooth curves
+            const midX = (lastPos.x + pos.x) / 2;
+            const midY = (lastPos.y + pos.y) / 2;
+
             ctx.beginPath();
-            ctx.moveTo(lastPos.x, lastPos.y);
-            ctx.lineTo(pos.x, pos.y);
+            ctx.moveTo(prevPos.x, prevPos.y);
+            ctx.quadraticCurveTo(lastPos.x, lastPos.y, midX, midY);
             ctx.stroke();
 
+            prevPos = { x: midX, y: midY };
             lastPos = pos;
             lastTime = now;
         };
