@@ -2639,37 +2639,29 @@ function bindUIEvents() {
 
             // Calculate Overlay Position & Size strictly matching Canvas
             const padRect = pad.getBoundingClientRect();
-            // Parent needs to be strictly relative for absolute children positioning
-            // We assume parent is .handwriting-pad-wrapper or direct container
-            const parentRect = pad.parentElement.getBoundingClientRect();
 
-            // Calculate offset relative to parent
-            const relTop = padRect.top - parentRect.top;
-            const relLeft = padRect.left - parentRect.left;
-
-            // 1. Fade Out Ink (Overlay White)
+            // 1. Fade Out Ink (Overlay White) - Use FIXED positioning for mobile compatibility
             const overlay = document.createElement('div');
-            overlay.style.position = 'absolute';
-            overlay.style.top = relTop + 'px';
-            overlay.style.left = relLeft + 'px';
+            overlay.style.position = 'fixed';
+            overlay.style.top = padRect.top + 'px';
+            overlay.style.left = padRect.left + 'px';
             overlay.style.width = padRect.width + 'px';
             overlay.style.height = padRect.height + 'px';
             overlay.style.backgroundColor = 'white';
             overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 1.2s ease-out'; // SLOWER TRANSITION
+            overlay.style.transition = 'opacity 1.2s ease-out';
             overlay.style.pointerEvents = 'none';
-            overlay.style.zIndex = 10;
-            pad.parentElement.appendChild(overlay);
+            overlay.style.zIndex = '1000';
+            document.body.appendChild(overlay);
 
             // 2. Fade In Character (Centered on Input)
             const charDisplay = document.createElement('div');
             charDisplay.innerText = res.char;
-            charDisplay.style.position = 'absolute';
+            charDisplay.style.position = 'fixed';
 
-            // Bounds are in CANVAS COORDINATES
-            // Need to map to the new overlay coordinates (which matches canvas size)
-            let centerX = padRect.width / 2;
-            let centerY = padRect.height / 2;
+            // Calculate center in viewport coordinates
+            let centerX = padRect.left + padRect.width / 2;
+            let centerY = padRect.top + padRect.height / 2;
 
             if (bounds.minX !== Infinity) {
                 const cx = (bounds.minX + bounds.maxX) / 2;
@@ -2677,24 +2669,23 @@ function bindUIEvents() {
                 // Ratio
                 const rX = cx / pad.width;
                 const rY = cy / pad.height;
-                centerX = rX * padRect.width;
-                centerY = rY * padRect.height;
+                centerX = padRect.left + rX * padRect.width;
+                centerY = padRect.top + rY * padRect.height;
             }
 
-            // Adjust for relative positioning
-            charDisplay.style.top = (relTop + centerY) + 'px';
-            charDisplay.style.left = (relLeft + centerX) + 'px';
-            charDisplay.style.transform = 'translate(-50%, -50%) scale(0.6)'; // Start small
+            charDisplay.style.top = centerY + 'px';
+            charDisplay.style.left = centerX + 'px';
+            charDisplay.style.transform = 'translate(-50%, -50%) scale(0.6)';
             charDisplay.style.fontFamily = "'Yuji Syuku', serif";
             charDisplay.style.fontSize = '180px';
             charDisplay.style.color = '#1a1a1a';
             charDisplay.style.opacity = '0';
-            charDisplay.style.transition = 'opacity 1.5s ease-in, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1)'; // SLOWER
+            charDisplay.style.transition = 'opacity 1.5s ease-in, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1)';
             charDisplay.style.pointerEvents = 'none';
             charDisplay.style.textShadow = '0 0 20px rgba(0,0,0,0.1)';
-            charDisplay.style.zIndex = 11;
+            charDisplay.style.zIndex = '1001';
             charDisplay.style.whiteSpace = 'nowrap';
-            pad.parentElement.appendChild(charDisplay);
+            document.body.appendChild(charDisplay);
 
             // Trigger Animations
             requestAnimationFrame(() => {
