@@ -2575,8 +2575,27 @@ function bindUIEvents() {
 
         const getPos = (e) => {
             const rect = pad.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            let clientX, clientY;
+
+            // Handle mouse events
+            if (e.clientX !== undefined) {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            // Handle touch events (use touches first, then changedTouches for touchend)
+            else if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+            else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            }
+            else {
+                // Fallback to lastPos if no valid coordinates
+                return lastPos;
+            }
+
             return {
                 x: (clientX - rect.left) * (pad.width / rect.width),
                 y: (clientY - rect.top) * (pad.height / rect.height)
