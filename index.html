@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APOCALYPSE</title>
-    <link rel="stylesheet" href="style.css?v=36">
+    <link rel="stylesheet" href="style_reset.css?v=218">
 </head>
 
 <body>
@@ -14,30 +14,26 @@
         <div id="title-screen" class="screen active">
             <h1 style="font-size: 48px; margin-bottom: 20px;">APOCALYPSE</h1>
             <p style="font-size: 18px; margin-bottom: 30px;">印を結び、敵を討て！</p>
-            <button id="btn-start" class="btn">戦闘開始</button>
+            <button id="btn-start" class="btn primary">戦闘開始</button>
+            <div id="title-kanji-display" style="margin-top: 20px; font-size: 24px; color: #cfaa6e;"></div>
             <button id="btn-title-reselect" class="btn" style="margin-top: 10px;">印を変更</button>
         </div>
 
         <!-- Seal Selection Screen -->
         <div id="kanji-select-screen" class="screen">
-            <h2>印を結べ</h2>
-
-
-            <!-- Main Center Area -->
-            <div class="seal-main-content">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <h2>印を結べ</h2>
                 <div id="handwriting-ui">
-                    <canvas id="writing-pad" width="350" height="350"></canvas>
+                    <canvas id="writing-pad" width="350" height="350"
+                        style="background:white; border:2px solid #555;"></canvas>
 
-                    <div id="result-display-area">
+                    <div id="result-display-area" style="margin: 10px; font-size: 24px;">
                         <span class="label">認識:</span>
                         <span id="result-char" style="color:#e74c3c; font-weight:bold; font-size:32px;">?</span>
                         <span id="result-name" style="color:#aaa;">---</span>
                     </div>
 
-                    <div class="hw-controls">
-                        <button id="btn-clear" class="btn">消去</button>
-                        <button id="btn-submit" class="btn primary">認識</button>
-                    </div>
+                    <!-- Manual controls removed as per user request (Auto-commit used) -->
 
                     <button id="btn-confirm-start" class="btn"
                         style="display:none; background:#e67e22; color:white; font-size:24px; padding:10px 40px; margin-top: 20px;">
@@ -46,76 +42,146 @@
                 </div>
             </div>
 
-            <!-- Toggle Button for Side Panel -->
-            <button id="btn-open-list" title="一覧を開く">◀</button>
-
-            <!-- Right Side Panel (Collapsible) -->
+            <!-- Right Side Panel -->
             <div class="seal-side-panel" id="seal-side-panel">
-                <button id="btn-close-list">×</button>
-                <h3 style="margin-top: 40px; border-bottom: 1px solid #555; padding-bottom: 10px;">印一覧</h3>
+                <button id="btn-close-list" style="float:right;">×</button>
+                <h3 style="margin-top: 10px; border-bottom: 1px solid #555; padding-bottom: 10px;">印一覧</h3>
                 <div id="list-selection-container">
                     <!-- Populated by JS -->
                 </div>
             </div>
+
+            <button id="btn-open-list" title="一覧を開く" style="position:absolute; right:0; top:50%;">◀</button>
         </div>
 
-        <!-- Result Screen (used for shop, game over) -->
-        <div id="result-screen" class="screen">
-            <h2 id="result-title">結果</h2>
+        <!-- Result Screen (Shop / Game Over) -->
+        <div id="result-screen" class="screen" style="overflow-y: auto;">
+            <div style="max-width: 900px; margin: 0 auto; padding: 20px;">
+                <h2 id="result-title" style="font-size: 32px; margin-bottom: 20px; letter-spacing: 0.2em; color: #aaa;">
+                    戦果確認</h2>
 
-            <!-- Shop UI -->
-            <div id="shop-container" style="display: none;">
-                <h3>強化 (銭: <span id="shop-money">0</span>)</h3>
-                <div class="stat-row">
-                    <span>能力 Lv.<span id="lvl-ability">1</span></span>
-                    <button id="btn-up-ability" class="btn">強化</button>
+                <!-- Shop / Result UI -->
+                <div id="shop-container" style="display: block; width: 100%;">
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: left; margin-bottom: 20px;">
+                        <div class="stat-box"
+                            style="background: rgba(255,255,255,0.05); padding: 10px; border: 1px solid #444;">
+                            <div style="color: #aaa; font-size: 12px;">現在の印</div>
+                            <div id="res-kanji-name" style="font-size: 20px; color: var(--accent-gold);">---</div>
+                        </div>
+                        <div class="stat-box"
+                            style="background: rgba(255,255,255,0.05); padding: 10px; border: 1px solid #444;">
+                            <div style="color: #aaa; font-size: 12px;">到達戦場</div>
+                            <div id="res-stage" style="font-size: 20px; color: white;">---</div>
+                        </div>
+                        <div class="stat-box"
+                            style="background: rgba(255,255,255,0.05); padding: 10px; border: 1px solid #444;">
+                            <div style="color: #aaa; font-size: 12px;">所持金</div>
+                            <div id="shop-money" style="font-size: 20px; color: #f1c40f;">0</div>
+                        </div>
+                        <div class="stat-box"
+                            style="background: rgba(255,255,255,0.05); padding: 10px; border: 1px solid #444;">
+                            <div style="color: #aaa; font-size: 12px;">効果時間</div>
+                            <div id="res-duration" style="font-size: 20px; color: white;">---</div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: #ddd; margin-bottom: 10px; text-align: left;">能力強化</h4>
+
+                    <div style="display:flex; flex-direction:column; gap: 5px;">
+                        <div class="shop-item" style="width: 100%; box-sizing: border-box; margin: 0; padding: 10px;">
+                            <div>
+                                <div style="font-size: 16px; color: var(--accent-gold);">印威力 / 効果</div>
+                                <div style="font-size: 12px; color: #888;">Lv.<span id="lvl-ability">1</span></div>
+                            </div>
+                            <button id="btn-up-ability" class="btn"
+                                style="font-size:16px; padding: 5px 20px;">強化</button>
+                        </div>
+
+                        <div class="shop-item" style="width: 100%; box-sizing: border-box; margin: 0; padding: 10px;">
+                            <div>
+                                <div style="font-size: 16px; color: var(--accent-red);">攻撃力 (敵へのダメージ)</div>
+                                <div style="font-size: 12px; color: #888;">Lv.<span id="lvl-atk">1</span> <span
+                                        id="val-atk" style="margin-left:5px; color:#fff;">(10)</span></div>
+                            </div>
+                            <button id="btn-up-atk" class="btn" style="font-size:16px; padding: 5px 20px;">強化</button>
+                        </div>
+
+                        <div class="shop-item" style="width: 100%; box-sizing: border-box; margin: 0; padding: 10px;">
+                            <div>
+                                <div style="font-size: 16px; color: #2ecc71;">体力 (Max HP)</div>
+                                <div style="font-size: 12px; color: #888;">Lv.<span id="lvl-hp">1</span> <span
+                                        id="val-hp" style="margin-left:5px; color:#fff;">(100)</span></div>
+                            </div>
+                            <button id="btn-up-hp" class="btn" style="font-size:16px; padding: 5px 20px;">強化</button>
+                        </div>
+                    </div>
+
+                    <button id="btn-next-stage" class="btn primary"
+                        style="margin-top: 20px; font-size: 24px; width: 100%; padding: 15px;">次の戦場へ</button>
                 </div>
-                <div class="stat-row">
-                    <span>攻撃 Lv.<span id="lvl-atk">1</span></span>
-                    <button id="btn-up-atk" class="btn">強化</button>
-                </div>
-                <div class="stat-row">
-                    <span>体力 Lv.<span id="lvl-hp">1</span></span>
-                    <button id="btn-up-hp" class="btn">強化</button>
-                </div>
-                <button id="btn-next-stage" class="btn" style="margin-top: 20px; font-size: 24px;">次の戦場へ</button>
+
             </div>
 
             <!-- Game Over UI -->
-            <div id="game-over-container" style="display: none;">
-                <div style="margin-top: 20px;">
-                    <button id="btn-retry" class="btn" style="font-size: 20px;">再挑戦</button>
-                    <button id="btn-reset" class="btn" style="font-size: 20px; background: #8e44ad;">最初から</button>
+            <div id="game-over-container" style="display: none; text-align: center;">
+                <h2 style="font-size: 48px; color: #555; margin-bottom: 30px; letter-spacing: 0.2em;">敗北</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                    <button id="btn-retry" class="btn primary"
+                        style="font-size: 24px; padding: 15px; width: 100%; max-width: 300px;">再挑戦
+                        (金継承)</button>
+                    <!-- "Reselect Kanji" removed as it is conceptually "Give Up" without Reset, which user rejected for Game Over -->
+                    <button id="btn-reset" class="btn"
+                        style="font-size: 16px; background: #333; color:#888; border:none; margin-top:20px; width: 100%; max-width: 300px;">諦める
+                        (完全リセット)</button>
                 </div>
             </div>
 
             <!-- All Clear -->
-            <div id="all-clear-container" style="display: none;">
-                <p>全ての強敵を打ち倒した！</p>
-                <button id="btn-ng-plus" class="btn" style="font-size: 24px; margin: 10px auto; width: 300px;">New Game
-                    +</button>
-                <button id="btn-full-reset" class="btn"
-                    style="font-size: 18px; margin: 10px auto; width: 300px; background: #e74c3c;">完全リセット</button>
-            </div>
-        </div>
-
-        <!-- Game Screen (Canvas) -->
-        <div id="game-screen" class="screen">
-            <canvas id="game-canvas"></canvas>
-            <div id="hud" style="display: none;">
-                <div class="hud-top">
-                    <div id="hud-hp">体力: 100/100</div>
-                    <div id="hud-money">銭: 0</div>
-                    <div id="hud-ability">能力準備完了</div>
+            <div id="all-clear-container" style="display: none; text-align: center;">
+                <h1
+                    style="color:var(--accent-gold); font-size: 64px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255,215,0,0.5);">
+                    天下無双</h1>
+                <p style="font-size: 24px; margin-bottom: 40px;">全ての脅威を退けた</p>
+                <div style="display: flex; flex-direction: column; gap: 20px; align-items: center;">
+                    <button id="btn-ng-plus" class="btn primary"
+                        style="font-size: 24px; padding: 20px; width: 100%; max-width: 400px;">強くてニューゲーム
+                        (能力引継)</button>
+                    <button id="btn-full-reset" class="btn" style="font-size: 18px; width: 100%; max-width: 300px;">輪廻転生
+                        (完全リセット)</button>
                 </div>
             </div>
         </div>
 
-    </div>
+        <!-- Game Screen (Placeholder for structure/HUD, Canvas moved to body) -->
+        <div id="game-screen" class="screen">
+            <!-- Canvas is moved to body by JS? No, logic says document.getElementById('game-canvas').getContext... -->
+            <!-- But wait, game.js logic might append it to body if not found? No. -->
+            <canvas id="game-canvas"></canvas>
+
+            <div id="ui-layer"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 150;">
+            </div>
+
+            <div id="hud"
+                style="display: none; position: absolute; z-index: 100; pointer-events: none; width: 100%; height: 100%;">
+                <div id="hud-text"
+                    style="position: absolute; top: 20px; left: 20px; color: white; font-size: 18px; text-shadow: 1px 1px 2px black;">
+                </div>
+            </div>
+
+            <!-- Boss Warning -->
+            <div class="boss-warning"
+                style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); color:red; font-size:64px; font-weight:bold; text-shadow:0 0 10px black;">
+                強敵出現！
+            </div>
+        </div>
+
     </div>
 
-    <script src="recognizer.js?t=20260115v57"></script>
-    <script src="game.js?t=20260115v57"></script>
+    <script src="recognizer.js?t=20260116v295"></script>
+    <script src="game.js?t=20260116v295"></script>
 </body>
 
 </html>

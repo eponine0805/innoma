@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kanji Test</title>
+    <style>
+        body {
+            background: #222;
+            color: white;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .kanji-btn {
+            margin: 5px;
+            padding: 10px;
+            font-size: 24px;
+            background: #333;
+            border: 1px solid;
+            cursor: pointer;
+        }
+
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Kanji List Test</h1>
+    <div id="status">Loading...</div>
+    <div id="kanji-list"></div>
+
+    <script>
+        // Simple CONFIG
+        const CONFIG = {
+            Kanji: {
+                '火': { name: 'Fire', color: '#e74c3c' },
+                '水': { name: 'Water', color: '#3498db' },
+                '土': { name: 'Earth', color: '#795548' },
+                '金': { name: 'Gold', color: '#f1c40f' },
+                '鉄': { name: 'Iron', color: '#95a5a6' }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const status = document.getElementById('status');
+            const container = document.getElementById('kanji-list');
+
+            status.textContent = 'DOM Ready';
+
+            if (!container) {
+                status.textContent = 'ERROR: Container not found!';
+                return;
+            }
+
+            const keys = Object.keys(CONFIG.Kanji);
+            status.textContent = `Found ${keys.length} kanji`;
+
+            keys.forEach(k => {
+                const data = CONFIG.Kanji[k];
+                const btn = document.createElement('button');
+                btn.className = 'kanji-btn';
+                btn.style.borderColor = data.color;
+                btn.style.color = data.color;
+                btn.textContent = k;
+                btn.title = data.name;
+                btn.onclick = () => alert(`Selected: ${k} (${data.name})`);
+                container.appendChild(btn);
+            });
+
+            status.textContent += ` - ${container.children.length} buttons created`;
+        });
+    </script>
+</body>
+
+</html>
